@@ -25,8 +25,7 @@ class MainActivity : AppCompatActivity() {
             withContext(Dispatchers.IO) {
                 getWeb()
             }
-            textView.text = currentCurrency
-            currentStringcurrency.text = StringVal
+
         }
     }
 
