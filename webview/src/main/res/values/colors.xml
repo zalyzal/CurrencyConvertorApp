@@ -7,4 +7,5 @@
     <color name="colorGray">#ece2e1</color>
     <color name="colorAlmostGray">#f7f6e7</color>
     <color name="colorYellow">#ffe227</color>
+    <color name="colorStatusBar">#222021</color>
 </resources>

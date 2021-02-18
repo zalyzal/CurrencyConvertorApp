@@ -4,4 +4,5 @@
     <string name="us_dollar">USD</string>
     <string name="default_value">1</string>
     <string name="uah_ukr">UAH</string>
+    <string name="updated_at">Updated at:</string>
 </resources>
