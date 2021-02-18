@@ -32,21 +32,37 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val date : Date = Date()
-        textView3.text = SimpleDateFormat("d-MM, HH:mm", Locale.getDefault()).format(date.time)
+
+        init()
+
+    }
+
+
+    private fun init(){
         if(isOnline()){
-            CoroutineScope(Dispatchers.IO).launch {
-                downloadActualInfo()
-            }
+            update()
         }
         else{
-            bottom_currency.setText("28")
+            bottom_currency.setText(getPreferences())
         }
         convert()
     }
 
+    private fun update(){
+        CoroutineScope(Dispatchers.IO).launch {
+            downloadActualInfo()
+        }
+    }
 
-    private fun dateUpdate(){
+    private fun setPreferences(doll : String){
+        val sharedPreferences = this.getSharedPreferences("Value",Context.MODE_PRIVATE)
+        val edit = sharedPreferences.edit()
+        edit.putString("USD",doll).apply()
+    }
+
+    private fun getPreferences(): String? {
+        val sharedPreferences = this.getSharedPreferences("Value",Context.MODE_PRIVATE)
+        return sharedPreferences.getString("USD","28")
 
     }
 
@@ -54,8 +70,9 @@ class MainActivity : AppCompatActivity() {
         try {
             doc = Jsoup.connect("https://minfin.com.ua/currency/").get()
             val currency = getInfo(doc,0)
-            val currencyInt = getIntValue(currency)
+            val currencyInt = getDoubleValue(currency)
             currentCurrency = splitParcedCurrency(currencyInt).toString()
+            setPreferences(currentCurrency!!)
         }catch (e: Exception){
             e.printStackTrace()
         }
@@ -69,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         return chosenElement
     }
 
-    private fun getIntValue(doc: org.jsoup.nodes.Element?): org.jsoup.nodes.Element? {
+    private fun getDoubleValue(doc: org.jsoup.nodes.Element?): org.jsoup.nodes.Element? {
         val currency = doc?.children()?.get(2)
         return currency
     }
@@ -86,10 +103,12 @@ class MainActivity : AppCompatActivity() {
         first_currency_text.text = second_currency_text.text.also { second_currency_text.text = first_currency_text.text }
         first_currency_img.setImageBitmap(second_currency_img.drawable.toBitmap().also { second_currency_img.setImageBitmap(first_currency_img.drawable.toBitmap())})
         top_currency.text = down_currency.text.also { down_currency.text = top_currency.text }
+        upper_currency.setText("")
+        bottom_currency.setText("")
     }
 
 
-    fun isOnline(): Boolean {
+    private fun isOnline(): Boolean {
         val connMgr = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo: NetworkInfo? = connMgr.activeNetworkInfo
         return networkInfo?.isConnected == true
@@ -101,6 +120,7 @@ class MainActivity : AppCompatActivity() {
             getWeb()
             withContext(Dispatchers.Main) {
                 bottom_currency.setText(currentCurrency)
+                textView3.text = SimpleDateFormat("d-MM, HH:mm", Locale.getDefault()).format(Date().time)
             }
         }
     }
@@ -114,10 +134,35 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                //bottom_currency.setText((s.toString().toDouble()*bottom_currency.text.toString().toDouble()).toString())
-                bottom_currency.setText(s.toString())
+                onTextChanger(s)
             }
         })
+    }
+
+    private fun onTextChanger(s:CharSequence?){
+        with(down_currency.text.toString()) {
+            if (upper_currency.text.length == 0) {
+                if (this == "USD") {
+                    bottom_currency.setText("")
+                } else {
+                    bottom_currency.setText(getPreferences())
+                }
+            } else {
+                val first_number = s.toString().toDouble()
+                val second_number = getPreferences()!!.toDouble()
+                if (this == "USD") {
+                    val res = (first_number / second_number).toBigDecimal().setScale(2, RoundingMode.UP)
+                    bottom_currency.setText("$res")
+                } else {
+                    val res = first_number * second_number
+                    bottom_currency.setText("$res")
+                }
+            }
+        }
+    }
+
+    fun buttonUpdate(view: View) {
+        update()
     }
 
 }

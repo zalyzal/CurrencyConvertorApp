@@ -43,6 +43,7 @@
                 android:layout_alignParentStart="true"
                 android:background="@android:color/transparent"
                 android:scaleType="centerInside"
+                android:onClick="buttonUpdate"
                 app:srcCompat="@drawable/update" />
 
             <TextView
